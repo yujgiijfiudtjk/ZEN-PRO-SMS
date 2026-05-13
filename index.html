@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zen Pro SMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+
+    <style>
+        :root {
+            --primary: #007aff;
+            --primary-strong: #0057ff;
+            --primary-soft: rgba(0,122,255,0.12);
+            --accent: #5ac8fa;
+            --success: #34c759;
+            --danger: #ff3b30;
+            --warning: #ff9f0a;
+            --text-primary: #0f172a;
+            --text-secondary: #5b6475;
+            --text-tertiary: #8f98aa;
+            --surface: rgba(255,255,255,0.86);
+            --surface-strong: rgba(255,255,255,0.96);
+            --shadow-xl: 0 16px 36px rgba(44,62,80,0.10);
+            --shadow-lg: 0 12px 28px rgba(64,91,124,0.09);
+            --shadow-md: 0 8px 20px rgba(60,82,113,0.08);
+            --radius-xl: 34px;
+            --radius-lg: 28px;
+            --radius-md: 22px;
+            --wallet-gradient: linear-gradient(180deg,rgba(255,255,255,0.95) 0%,rgba(241,246,255,0.92) 100%);
+            --header-gradient: linear-gradient(180deg,rgba(255,255,255,0.94) 0%,rgba(241,246,255,0.92) 100%);
+            --button-gradient: linear-gradient(135deg,#5ac8fa 0%,#007aff 52%,#5856d6 100%);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family:"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+        html { scroll-behavior: auto; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(180deg,#f8fbff 0%,#eef3fb 58%,#e8eef7 100%);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── SPLASH ─── */
+        #splash {
+            position: fixed; inset: 0;
+            background: rgba(248,250,255,0.97);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center; gap: 20px;
+            z-index: 9999;
+        }
+        .splash-logo { font-size: 2.2rem; font-weight: 800; background: var(--button-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.03em; }
+        .spinner { width: 48px; height: 48px; border-radius: 50%; border: 3px solid rgba(0,122,255,0.15); border-top-color: var(--primary); animation: spin 0.9s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes sheetUp { from { transform: translateY(22px) scale(0.98); opacity:0; } to { transform: translateY(0) scale(1); opacity:1; } }
+        @keyframes fadeLift { from { transform: translateY(8px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+        /* ─── APP CONTAINER ─── */
+        .app-container {
+            width: 100%; max-width: 480px;
+            margin: 0 auto; min-height: 100vh;
+            display: none;
+            padding: max(14px,env(safe-area-inset-top)) 16px calc(30px + env(safe-area-inset-bottom));
+            position: relative; z-index: 1;
+        }
+        .app-container::before {
+            content: ""; position: sticky; top: 10px;
+            margin: 0 auto 12px; display: block;
+            width: 122px; height: 34px; border-radius: 999px;
+            background: rgba(18,18,24,0.92);
+            box-shadow: 0 8px 20px rgba(15,23,42,0.15);
+            z-index: 6;
+        }
+
+        /* ─── HEADER ─── */
+        .header {
+            position: relative;
+            background: var(--header-gradient);
+            padding: 28px 20px 22px;
+            border-radius: 34px;
+            border: 1px solid rgba(255,255,255,0.84);
+            box-shadow: var(--shadow-xl);
+            backdrop-filter: blur(8px) saturate(125%);
+        }
+        .user-top { display:flex; justify-content:space-between; align-items:center; gap:14px; }
+        .u-info { display:flex; align-items:center; gap:13px; cursor:pointer; flex:1; min-width:0; }
+        .u-info img { width:58px; height:58px; border-radius:20px; border:2px solid rgba(255,255,255,0.9); object-fit:cover; box-shadow:0 8px 18px rgba(0,122,255,0.10); background:rgba(255,255,255,0.8); flex-shrink:0; }
+        #u-name { font-size:1.05rem; font-weight:700; letter-spacing:-0.02em; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #u-email { color:var(--text-secondary); font-size:0.72rem; margin-top:3px; letter-spacing:0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
+        #auth-action-btn { width:46px; height:46px; border-radius:16px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.82); border:1px solid rgba(255,255,255,0.88); box-shadow:0 8px 18px rgba(73,95,128,0.08); flex-shrink:0; cursor:pointer; }
+        #auth-action-btn i { color:var(--primary); font-size:1.15rem; }
+
+        .balance-card {
+            background: var(--wallet-gradient);
+            margin-top: 18px; padding: 18px 20px;
+            border-radius: 26px; border: 1px solid rgba(255,255,255,0.88);
+            backdrop-filter: blur(8px) saturate(120%);
+            display: flex; justify-content:space-between; align-items:stretch; gap:14px;
+            box-shadow: 0 12px 28px rgba(0,122,255,0.10),inset 0 1px 0 rgba(255,255,255,0.68);
+        }
+        .balance-card > div { flex:1; padding:2px 4px; }
+        .balance-card > div:last-child { text-align:right; border-left:1px solid rgba(15,23,42,0.08); padding-left:16px; }
+        .balance-card p { color:var(--text-secondary); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin:0 0 6px; }
+        .balance-card h2 { font-size:1.65rem; line-height:1; letter-spacing:-0.04em; color:var(--text-primary); font-weight:800; margin:0; }
+
+        /* ─── MENU ─── */
+        .menu-grid {
+            display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+            gap:13px; padding:16px; margin: -16px 0 0;
+            border-radius:30px;
+            background:rgba(255,255,255,0.74);
+            border:1px solid rgba(255,255,255,0.82);
+            backdrop-filter:blur(8px) saturate(120%);
+            box-shadow:var(--shadow-lg);
+        }
+        .menu-grid::before { content:"Quick Actions"; grid-column:1/-1; font-size:0.75rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-tertiary); font-weight:700; margin-bottom:2px; }
+        .menu-card {
+            min-height:112px; background:rgba(255,255,255,0.96);
+            border-radius:26px; overflow:hidden; text-align:center;
+            box-shadow:0 8px 20px rgba(61,86,122,0.06),inset 0 1px 0 rgba(255,255,255,0.72);
+            transition:transform 0.16s ease,box-shadow 0.16s ease,border-color 0.16s ease;
+            cursor:pointer; border:1px solid rgba(255,255,255,0.94);
+            display:flex; flex-direction:column; justify-content:space-between;
+        }
+        .menu-card:hover { transform:translateY(-2px); box-shadow:0 12px 24px rgba(61,86,122,0.08); border-color:rgba(173,214,255,0.70); }
+        .menu-card:active { transform:scale(0.97); }
+        .icon-area { padding:14px 12px 7px; display:flex; justify-content:center; align-items:center; height:72px; }
+        .icon-area i { width:52px; height:52px; display:inline-flex; align-items:center; justify-content:center; font-size:1.3rem; border-radius:17px; color:var(--primary); background:linear-gradient(180deg,rgba(255,255,255,0.96),rgba(240,245,255,0.92)); box-shadow:inset 0 1px 0 rgba(255,255,255,0.76),0 6px 14px rgba(0,122,255,0.08); }
+        .label-area { padding:0 8px 14px; font-size:0.74rem; font-weight:700; color:var(--text-primary); letter-spacing:-0.01em; }
+        #watch-video-btn { transition:transform 0.16s ease,opacity 0.16s ease !important; }
+
+        /* ─── MODALS ─── */
+        .modal {
+            display:none; position:fixed; inset:0; width:100%; height:100%;
+            background:rgba(20,28,45,0.22);
+            z-index:1000; align-items:flex-end; justify-content:center; padding:16px;
+        }
+        .modal-content {
+            background:rgba(255,255,255,0.97);
+            border-radius:34px; padding:30px 20px 22px;
+            width:100%; max-width:480px;
+            box-shadow:0 16px 40px rgba(34,52,79,0.14),inset 0 1px 0 rgba(255,255,255,0.70);
+            animation:sheetUp 0.18s ease-out;
+            backdrop-filter:blur(10px) saturate(125%);
+            max-height:88vh; overflow-y:auto;
+            -webkit-overflow-scrolling:touch;
+        }
+        .close-btn { position:absolute; top:18px; right:20px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(240,242,246,0.90); font-size:1rem; color:var(--text-secondary); cursor:pointer; border:none; transition:background 0.14s; }
+        .close-btn:hover { background:rgba(224,228,236,0.95); }
+        .modal-content { position:relative; }
+        .modal-title { font-size:1.12rem; font-weight:800; color:var(--text-primary); letter-spacing:-0.025em; margin:0 0 18px; }
+
+        /* ─── INPUTS ─── */
+        .input-group {
+            display:flex; align-items:center;
+            background:rgba(255,255,255,0.82);
+            border-radius:20px; margin:10px 0;
+            padding:4px 12px;
+            border:1px solid rgba(255,255,255,0.92);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,0.68),0 6px 14px rgba(56,78,109,0.05);
+            transition:border-color 0.2s,box-shadow 0.2s;
+        }
+        .input-group:focus-within { border-color:rgba(0,122,255,0.3); box-shadow:0 0 0 3px rgba(0,122,255,0.10),0 10px 18px rgba(0,122,255,0.08); }
+        .input-group i { color:var(--text-tertiary); font-size:0.95rem; margin-right:10px; flex-shrink:0; }
+        .input-group input,.input-group textarea,.input-group select { flex:1; background:none !important; border:none !important; padding:13px 6px !important; outline:none; font-weight:600; font-size:0.94rem; color:var(--text-primary); resize:none; min-width:0; appearance:none; -webkit-appearance:none; }
+        .input-group input::placeholder,.input-group textarea::placeholder { color:#9ba5b6; font-weight:500; }
+        .input-group textarea { min-height:110px; line-height:1.55; padding-top:14px !important; }
+
+        /* ─── BUTTONS ─── */
+        .btn-p {
+            background:var(--button-gradient); color:#fff; border:none;
+            padding:14px 18px; width:100%; border-radius:20px;
+            font-weight:700; font-size:0.96rem; cursor:pointer; margin-top:10px;
+            display:flex; justify-content:center; align-items:center; gap:9px;
+            box-shadow:0 10px 22px rgba(0,122,255,0.16);
+            transition:transform 0.16s ease,box-shadow 0.16s ease;
+        }
+        .btn-p:hover { transform:translateY(-1px); box-shadow:0 14px 24px rgba(0,122,255,0.18); }
+        .btn-p:active { transform:scale(0.985); box-shadow:0 8px 16px rgba(0,122,255,0.14); }
+        .btn-danger { background:linear-gradient(135deg,#ff6b6b,#ff3b30) !important; }
+        .btn-gray { background:linear-gradient(135deg,#8e9aab,#6b7789) !important; }
+        .btn-success { background:linear-gradient(135deg,#4cd964,#34c759) !important; }
+
+        /* ─── AUTH PAGES ─── */
+        .auth-page {
+            display:none; position:fixed; inset:0;
+            background:linear-gradient(160deg,#f0f6ff 0%,#e8f0fd 40%,#deeaff 100%);
+            z-index:2000; overflow-y:auto;
+            padding:env(safe-area-inset-top,20px) 24px calc(env(safe-area-inset-bottom,20px) + 30px);
+            align-items:center; justify-content:center; flex-direction:column;
+        }
+        .auth-page.active { display:flex; }
+        .auth-card {
+            width:100%; max-width:420px;
+            background:rgba(255,255,255,0.94);
+            border-radius:36px; padding:36px 28px 30px;
+            border:1px solid rgba(255,255,255,0.90);
+            box-shadow:0 24px 60px rgba(30,60,120,0.13);
+            animation:fadeLift 0.3s ease;
+        }
+        .auth-logo { text-align:center; margin-bottom:28px; }
+        .auth-logo .logo-icon { width:72px; height:72px; border-radius:24px; background:var(--button-gradient); display:inline-flex; align-items:center; justify-content:center; font-size:2rem; color:#fff; box-shadow:0 14px 28px rgba(0,122,255,0.22); margin-bottom:14px; }
+        .auth-logo h1 { font-size:1.45rem; font-weight:800; color:var(--text-primary); letter-spacing:-0.03em; margin:0 0 6px; }
+        .auth-logo p { font-size:0.82rem; color:var(--text-secondary); margin:0; font-weight:500; }
+        .auth-tabs { display:flex; background:rgba(240,244,250,0.80); border-radius:16px; padding:4px; margin-bottom:22px; gap:4px; }
+        .auth-tab { flex:1; padding:10px; border-radius:13px; font-size:0.86rem; font-weight:700; text-align:center; cursor:pointer; color:var(--text-secondary); transition:all 0.18s; }
+        .auth-tab.active { background:#fff; color:var(--primary); box-shadow:0 4px 12px rgba(0,122,255,0.10); }
+        .auth-divider { text-align:center; margin:14px 0 4px; font-size:0.78rem; color:var(--text-tertiary); font-weight:600; letter-spacing:0.06em; position:relative; }
+        .auth-divider::before,.auth-divider::after { content:""; position:absolute; top:50%; width:38%; height:1px; background:rgba(15,23,42,0.08); }
+        .auth-divider::before { left:0; }
+        .auth-divider::after { right:0; }
+        .auth-link { text-align:center; font-size:0.8rem; color:var(--primary); cursor:pointer; margin-top:14px; font-weight:700; }
+        .auth-link:hover { text-decoration:underline; }
+        .auth-error { background:rgba(255,59,48,0.08); color:var(--danger); font-size:0.80rem; font-weight:700; border-radius:14px; padding:10px 14px; margin-top:10px; display:none; text-align:center; }
+        .auth-success { background:rgba(52,199,89,0.10); color:var(--success); font-size:0.80rem; font-weight:700; border-radius:14px; padding:10px 14px; margin-top:10px; display:none; text-align:center; }
+        .forgot-link { text-align:right; font-size:0.76rem; color:var(--primary); cursor:pointer; margin:-4px 0 4px; font-weight:700; }
+
+        /* ─── PROFILE MODAL ─── */
+        .profile-hero { display:flex; flex-direction:column; align-items:center; gap:12px; padding-bottom:20px; border-bottom:1px solid rgba(15,23,42,0.07); margin-bottom:16px; }
+        .profile-avatar { width:88px; height:88px; border-radius:28px; object-fit:cover; border:3px solid rgba(255,255,255,0.90); box-shadow:0 12px 28px rgba(0,122,255,0.14); }
+        .profile-name { font-size:1.15rem; font-weight:800; color:var(--text-primary); letter-spacing:-0.025em; margin:0; }
+        .profile-email { font-size:0.78rem; color:var(--text-secondary); font-weight:600; margin:2px 0 0; }
+        .profile-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; background:var(--primary-soft); border-radius:20px; font-size:0.72rem; color:var(--primary); font-weight:700; letter-spacing:0.04em; }
+        .profile-stat-row { display:flex; gap:12px; margin-bottom:16px; }
+        .profile-stat { flex:1; background:rgba(240,245,255,0.80); border-radius:18px; padding:14px 16px; text-align:center; }
+        .profile-stat .stat-val { font-size:1.25rem; font-weight:800; color:var(--text-primary); letter-spacing:-0.03em; }
+        .profile-stat .stat-lbl { font-size:0.68rem; color:var(--text-tertiary); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; margin-top:3px; }
+
+        /* ─── ADMIN PANEL ─── */
+        .admin-page {
+            display:none; position:fixed; inset:0;
+            background:linear-gradient(160deg,#f0f2ff 0%,#e8eeff 100%);
+            z-index:1500; overflow-y:auto;
+        }
+        .admin-page.active { display:block; }
+        .admin-header { background:rgba(255,255,255,0.94); padding:max(44px,env(safe-area-inset-top)) 20px 18px; border-bottom:1px solid rgba(15,23,42,0.07); position:sticky; top:0; z-index:10; backdrop-filter:blur(10px); }
+        .admin-header-top { display:flex; align-items:center; justify-content:space-between; }
+        .admin-title { font-size:1.18rem; font-weight:800; color:var(--text-primary); letter-spacing:-0.025em; }
+        .admin-subtitle { font-size:0.74rem; color:var(--text-tertiary); font-weight:600; margin-top:2px; }
+        .admin-close-btn { width:40px; height:40px; border-radius:14px; background:rgba(240,242,246,0.90); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:0.9rem; color:var(--text-secondary); }
+        .admin-tabs { display:flex; gap:8px; margin-top:14px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; }
+        .admin-tabs::-webkit-scrollbar { display:none; }
+        .admin-tab-btn { padding:8px 16px; border-radius:20px; font-size:0.78rem; font-weight:700; cursor:pointer; border:none; background:rgba(240,242,246,0.80); color:var(--text-secondary); white-space:nowrap; transition:all 0.16s; flex-shrink:0; }
+        .admin-tab-btn.active { background:var(--primary); color:#fff; box-shadow:0 6px 16px rgba(0,122,255,0.20); }
+        .admin-body { padding:16px; max-width:600px; margin:0 auto; }
+        .admin-section { display:none; }
+        .admin-section.active { display:block; animation:fadeLift 0.22s ease; }
+        .admin-card { background:rgba(255,255,255,0.96); border-radius:22px; padding:18px; margin-bottom:14px; border:1px solid rgba(255,255,255,0.88); box-shadow:0 8px 20px rgba(61,86,122,0.06); }
+        .admin-card-title { font-size:0.80rem; font-weight:700; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:14px; }
+        .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .stat-box { background:linear-gradient(135deg,rgba(240,246,255,0.90),rgba(230,240,255,0.80)); border-radius:18px; padding:16px; }
+        .stat-box .val { font-size:1.6rem; font-weight:800; color:var(--text-primary); letter-spacing:-0.04em; }
+        .stat-box .lbl { font-size:0.70rem; color:var(--text-tertiary); font-weight:600; text-transform:uppercase; letter-spacing:0.07em; margin-top:4px; }
+        .user-list-item { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(15,23,42,0.05); }
+        .user-list-item:last-child { border-bottom:none; padding-bottom:0; }
+        .user-list-avatar { width:44px; height:44px; border-radius:15px; object-fit:cover; background:rgba(230,240,255,0.80); flex-shrink:0; border:2px solid rgba(255,255,255,0.90); }
+        .user-list-info { flex:1; min-width:0; }
+        .user-list-name { font-size:0.88rem; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .user-list-email { font-size:0.72rem; color:var(--text-secondary); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .user-list-meta { display:flex; align-items:center; gap:6px; }
+        .badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:10px; font-size:0.68rem; font-weight:700; }
+        .badge-admin { background:rgba(88,86,214,0.12); color:#5856d6; }
+        .badge-active { background:rgba(52,199,89,0.12); color:var(--success); }
+        .badge-banned { background:rgba(255,59,48,0.12); color:var(--danger); }
+        .badge-bal { background:rgba(0,122,255,0.10); color:var(--primary); }
+        .admin-action-btns { display:flex; gap:6px; flex-shrink:0; }
+        .icon-btn { width:34px; height:34px; border-radius:11px; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:0.82rem; transition:transform 0.14s; }
+        .icon-btn:active { transform:scale(0.92); }
+        .icon-btn-primary { background:rgba(0,122,255,0.10); color:var(--primary); }
+        .icon-btn-danger { background:rgba(255,59,48,0.10); color:var(--danger); }
+        .icon-btn-warn { background:rgba(255,159,10,0.12); color:var(--warning); }
+        .admin-search { display:flex; align-items:center; background:rgba(255,255,255,0.96); border-radius:18px; padding:4px 14px; border:1px solid rgba(255,255,255,0.88); box-shadow:0 6px 14px rgba(56,78,109,0.05); margin-bottom:14px; gap:10px; }
+        .admin-search i { color:var(--text-tertiary); font-size:0.90rem; }
+        .admin-search input { flex:1; border:none; background:none; outline:none; font-size:0.88rem; font-weight:600; color:var(--text-primary); padding:11px 0; }
+        .admin-search input::placeholder { color:#b0b8c8; }
+        .settings-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 0; border-bottom:1px solid rgba(15,23,42,0.06); }
+        .settings-row:last-child { border-bottom:none; }
+        .settings-lbl { font-size:0.88rem; font-weight:700; color:var(--text-primary); }
+        .settings-sub { font-size:0.72rem; color:var(--text-tertiary); margin-top:2px; }
+        .settings-input { background:rgba(240,244,250,0.80); border:1px solid rgba(200,210,226,0.40); border-radius:14px; padding:9px 14px; font-size:0.86rem; font-weight:600; color:var(--text-primary); outline:none; width:160px; transition:border-color 0.16s; }
+        .settings-input:focus { border-color:rgba(0,122,255,0.30); }
+        .notif-form .input-group { background:rgba(240,244,250,0.80); }
+        .dep-item { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid rgba(15,23,42,0.05); gap:10px; }
+        .dep-item:last-child { border-bottom:none; }
+        .dep-user { font-size:0.84rem; font-weight:700; color:var(--text-primary); }
+        .dep-proof { font-size:0.72rem; color:var(--text-secondary); margin-top:2px; word-break:break-all; }
+        .dep-time { font-size:0.68rem; color:var(--text-tertiary); margin-top:2px; }
+        .sms-log-item { display:flex; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid rgba(15,23,42,0.05); gap:10px; }
+        .sms-log-item:last-child { border-bottom:none; }
+        .online-dot { width:8px; height:8px; border-radius:50%; background:var(--success); display:inline-block; margin-right:5px; animation:pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;}50%{opacity:0.4;} }
+        .empty-state { text-align:center; padding:32px 16px; color:var(--text-tertiary); font-size:0.84rem; font-weight:600; }
+        .empty-state i { font-size:2.5rem; display:block; margin-bottom:12px; opacity:0.4; }
+        .admin-inline-form { background:rgba(240,246,255,0.80); border-radius:16px; padding:14px; margin-top:10px; }
+        .admin-inline-form input { width:100%; background:rgba(255,255,255,0.92); border:1px solid rgba(200,218,240,0.50); border-radius:12px; padding:10px 14px; font-size:0.86rem; font-weight:600; color:var(--text-primary); outline:none; margin-bottom:8px; }
+        .admin-inline-form input:last-child { margin-bottom:0; }
+        .admin-inline-form input:focus { border-color:rgba(0,122,255,0.30); }
+        .admin-mini-btn { padding:8px 16px; border-radius:12px; border:none; font-size:0.78rem; font-weight:700; cursor:pointer; }
+        .admin-mini-btn-primary { background:var(--button-gradient); color:#fff; box-shadow:0 6px 14px rgba(0,122,255,0.18); }
+        .admin-mini-btn-gray { background:rgba(230,234,240,0.90); color:var(--text-secondary); }
+
+        /* ─── MISC ─── */
+        .notice-box { background:rgba(255,255,255,0.88); border-left:4px solid var(--primary); padding:14px 16px; border-radius:22px; font-size:0.76rem; color:var(--text-secondary); margin-bottom:14px; line-height:1.7; border:1px solid rgba(255,255,255,0.88); box-shadow:0 8px 18px rgba(61,86,122,0.05); }
+        .number-card,.rate-list { background:rgba(255,255,255,0.88); padding:16px; border-radius:22px; border:1px solid rgba(255,255,255,0.88); margin-bottom:14px; box-shadow:0 8px 18px rgba(61,86,122,0.05); }
+        .num-item { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; font-size:0.84rem; font-weight:700; color:var(--text-primary); padding-bottom:8px; border-bottom:1px solid rgba(15,23,42,0.06); }
+        .num-item:last-child { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+        .rate-list { padding:8px 14px; }
+        .rate-item { display:flex; justify-content:space-between; gap:10px; padding:12px 4px; border-bottom:1px solid rgba(15,23,42,0.06); font-size:0.82rem; font-weight:700; color:var(--text-primary); }
+        .rate-item:last-child { border-bottom:none; }
+        .sms-error { color:var(--danger); font-size:0.72rem; font-weight:700; margin-top:10px; display:none; text-align:center; background:rgba(255,59,48,0.08); padding:10px 14px; border-radius:14px; width:100%; }
+        .send-hint { font-size:0.76rem; color:var(--text-secondary); margin-top:12px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; }
+        .modern-send-btn { width:84px; height:84px; background:var(--button-gradient); border-radius:28px; display:flex; align-items:center; justify-content:center; box-shadow:0 12px 24px rgba(0,122,255,0.18),inset 0 1px 0 rgba(255,255,255,0.22); cursor:pointer; color:#fff; font-size:1.8rem; transition:transform 0.16s,box-shadow 0.16s; }
+        .modern-send-btn:hover { transform:translateY(-1px); }
+        .modern-send-btn:active { transform:scale(0.93); }
+        #video-list > div,#trust-list-container > div,#notif-container > div { background:rgba(255,255,255,0.90) !important; padding:13px !important; margin-bottom:10px !important; border-radius:20px !important; border:1px solid rgba(255,255,255,0.88) !important; box-shadow:0 8px 18px rgba(61,86,122,0.05) !important; }
+        #video-list a { display:inline-flex; align-items:center; gap:7px; text-decoration:none; color:var(--primary); font-weight:700; }
+        #notif-container > div:first-child { background:rgba(237,245,255,0.96) !important; }
+        #logout-modal .modal-content { text-align:center; padding-top:30px; }
+        #logout-modal h3 { font-weight:800; color:var(--text-primary); margin:0 0 12px; font-size:1.12rem; }
+
+        a { color:inherit; }
+        @media (max-width:420px) {
+            .app-container { padding-left:12px !important; padding-right:12px !important; }
+            .balance-card { flex-direction:column; gap:8px; }
+            .balance-card > div:last-child { border-left:none; border-top:1px solid rgba(15,23,42,0.08); padding-left:4px; padding-top:12px; text-align:left !important; }
+            .menu-grid { gap:10px !important; padding:14px !important; }
+            .menu-card { min-height:108px !important; }
+            .modal-content { border-radius:28px !important; padding:26px 16px 18px !important; }
+            .auth-card { padding:28px 20px 24px; border-radius:30px; }
+        }
+        @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
+    </style>
+</head>
+<body>
+
+<!-- ══ SPLASH ══ -->
+<div id="splash">
+    <div class="splash-logo">Zen Pro SMS</div>
+    <div class="spinner"></div>
+</div>
+
+<!-- ══ AUTH PAGES ══ -->
+<div class="auth-page" id="auth-page">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="logo-icon"><i class="fa-solid fa-comments"></i></div>
+            <h1>Zen Pro SMS</h1>
+            <p>Premium SMS Platform</p>
+        </div>
+        <div class="auth-tabs">
+            <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Login</div>
+            <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Register</div>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form">
+            <div class="input-group"><i class="fa-solid fa-phone"></i><input type="tel" id="login-phone" placeholder="Phone Number (01XXXXXXXXX)" maxlength="11" autocomplete="tel"></div>
+            <div class="input-group"><i class="fa-solid fa-lock"></i><input type="password" id="login-pass" placeholder="Password" autocomplete="current-password"></div>
+            <button class="btn-p" onclick="handleLogin()"><i class="fa-solid fa-arrow-right-to-bracket"></i> <span>Login</span></button>
+            <div class="auth-error" id="login-error"></div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" style="display:none">
+            <div class="input-group"><i class="fa-solid fa-user"></i><input type="text" id="reg-name" placeholder="Full Name" maxlength="30"></div>
+            <div class="input-group"><i class="fa-solid fa-phone"></i><input type="tel" id="reg-phone" placeholder="Phone Number (01XXXXXXXXX)" maxlength="11"></div>
+            <div class="input-group"><i class="fa-solid fa-lock"></i><input type="password" id="reg-pass" placeholder="Password (min 6 chars)" autocomplete="new-password"></div>
+            <div class="input-group"><i class="fa-solid fa-lock"></i><input type="password" id="reg-pass2" placeholder="Confirm Password" autocomplete="new-password"></div>
+            <button class="btn-p" onclick="handleRegister()"><i class="fa-solid fa-user-plus"></i> <span>Create Account</span></button>
+            <div class="auth-error" id="register-error"></div>
+            <div class="auth-success" id="register-success"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══ ADMIN PANEL ══ -->
+<div class="admin-page" id="admin-page">
+    <div class="admin-header">
+        <div class="admin-header-top">
+            <div>
+                <div class="admin-title">⚙️ Admin Panel</div>
+                <div class="admin-subtitle">Zen Pro SMS Control Center</div>
+            </div>
+            <button class="admin-close-btn" onclick="closeAdminPanel()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="admin-tabs">
+            <button class="admin-tab-btn active" onclick="switchAdminTab('overview')">Overview</button>
+            <button class="admin-tab-btn" onclick="switchAdminTab('users')">Users</button>
+            <button class="admin-tab-btn" onclick="switchAdminTab('deposits')">Deposits</button>
+            <button class="admin-tab-btn" onclick="switchAdminTab('sms')">SMS Logs</button>
+            <button class="admin-tab-btn" onclick="switchAdminTab('notifications')">Notifs</button>
+            <button class="admin-tab-btn" onclick="switchAdminTab('settings')">Settings</button>
+        </div>
+    </div>
+    <div class="admin-body">
+        <!-- OVERVIEW -->
+        <div class="admin-section active" id="admin-overview">
+            <div class="admin-card">
+                <div class="admin-card-title">Platform Stats</div>
+                <div class="stat-grid">
+                    <div class="stat-box"><div class="val" id="stat-users">—</div><div class="lbl">Total Users</div></div>
+                    <div class="stat-box"><div class="val" id="stat-sms">—</div><div class="lbl">SMS Sent</div></div>
+                    <div class="stat-box"><div class="val" id="stat-deposits">—</div><div class="lbl">Deposit Reqs</div></div>
+                    <div class="stat-box"><div class="val" id="stat-revenue">—</div><div class="lbl">Notifications</div></div>
+                </div>
+            </div>
+            <div class="admin-card">
+                <div class="admin-card-title">Recent Users</div>
+                <div id="recent-users-list"><div class="empty-state"><i class="fa-solid fa-users"></i>Loading...</div></div>
+            </div>
+        </div>
+
+        <!-- USERS -->
+        <div class="admin-section" id="admin-users">
+            <div class="admin-search"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="user-search" placeholder="Search by name or email..." oninput="filterUsers()"></div>
+            <div class="admin-card">
+                <div class="admin-card-title">All Users</div>
+                <div id="all-users-list"><div class="empty-state"><i class="fa-solid fa-users"></i>Loading users...</div></div>
+            </div>
+        </div>
+
+        <!-- DEPOSITS -->
+        <div class="admin-section" id="admin-deposits">
+            <div class="admin-card">
+                <div class="admin-card-title">Deposit Proofs</div>
+                <div id="admin-deposit-list"><div class="empty-state"><i class="fa-solid fa-receipt"></i>Loading...</div></div>
+            </div>
+        </div>
+
+        <!-- SMS LOGS -->
+        <div class="admin-section" id="admin-sms">
+            <div class="admin-card">
+                <div class="admin-card-title">SMS Activity</div>
+                <div id="admin-sms-list"><div class="empty-state"><i class="fa-solid fa-comments"></i>Loading...</div></div>
+            </div>
+        </div>
+
+        <!-- NOTIFICATIONS -->
+        <div class="admin-section" id="admin-notifications">
+            <div class="admin-card notif-form">
+                <div class="admin-card-title">Send Notification</div>
+                <div class="input-group"><i class="fa-solid fa-heading"></i><input type="text" id="notif-title-input" placeholder="Notification Title"></div>
+                <div class="input-group"><i class="fa-solid fa-align-left"></i><textarea id="notif-msg-input" placeholder="Notification message..." rows="3"></textarea></div>
+                <button class="btn-p" onclick="sendAdminNotif()"><i class="fa-solid fa-bell"></i> Send to All Users</button>
+            </div>
+            <div class="admin-card">
+                <div class="admin-card-title">Sent Notifications</div>
+                <div id="admin-notif-list"><div class="empty-state"><i class="fa-solid fa-bell"></i>No notifications</div></div>
+            </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div class="admin-section" id="admin-settings">
+            <div class="admin-card">
+                <div class="admin-card-title">Payment Numbers</div>
+                <div class="settings-row">
+                    <div><div class="settings-lbl">bKash</div><div class="settings-sub">Mobile banking number</div></div>
+                    <input class="settings-input" id="set-bkash" placeholder="01XXXXXXXXX" oninput="updateAdminSetting('bkash',this.value)">
+                </div>
+                <div class="settings-row">
+                    <div><div class="settings-lbl">Nagad</div><div class="settings-sub">Mobile banking number</div></div>
+                    <input class="settings-input" id="set-nagad" placeholder="01XXXXXXXXX" oninput="updateAdminSetting('nagad',this.value)">
+                </div>
+                <div class="settings-row">
+                    <div><div class="settings-lbl">Rocket</div><div class="settings-sub">Mobile banking number</div></div>
+                    <input class="settings-input" id="set-rocket" placeholder="01XXXXXXXXX" oninput="updateAdminSetting('rocket',this.value)">
+                </div>
+            </div>
+            <div class="admin-card">
+                <div class="admin-card-title">App Settings</div>
+                <div class="settings-row">
+                    <div><div class="settings-lbl">Watch Video Link</div><div class="settings-sub">Earn balance video URL</div></div>
+                    <input class="settings-input" id="set-watchlink" placeholder="https://..." oninput="updateAdminSetting2('watchVideoLink',this.value)">
+                </div>
+                <div class="settings-row">
+                    <div><div class="settings-lbl">Support Link</div><div class="settings-sub">Telegram/WhatsApp URL</div></div>
+                    <input class="settings-input" id="set-supportlink" placeholder="https://t.me/..." oninput="updateAdminSetting2('supportLink',this.value)">
+                </div>
+            </div>
+            <div class="admin-card">
+                <div class="admin-card-title">Trust List — Add Entry</div>
+                <div class="admin-inline-form">
+                    <input type="text" id="tl-phone" placeholder="Phone / Email">
+                    <input type="number" id="tl-amount" placeholder="Amount (৳)">
+                    <div style="display:flex;gap:8px;margin-top:4px">
+                        <button class="admin-mini-btn admin-mini-btn-primary" onclick="addTrustEntry()">Add Entry</button>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-card">
+                <div class="admin-card-title">Plus Videos — Add Video</div>
+                <div class="admin-inline-form">
+                    <input type="text" id="pv-title" placeholder="Video Title">
+                    <input type="text" id="pv-link" placeholder="Video URL">
+                    <input type="text" id="pv-desc" placeholder="Description">
+                    <div style="display:flex;gap:8px;margin-top:4px">
+                        <button class="admin-mini-btn admin-mini-btn-primary" onclick="addPlusVideo()">Add Video</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ EDIT USER MODAL (admin) ══ -->
+<div id="edit-user-modal" class="modal">
+    <div class="modal-content" style="max-width:440px">
+        <button class="close-btn" onclick="closeModal('edit-user-modal')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-title">Edit User</div>
+        <div style="text-align:center;margin-bottom:16px">
+            <img id="eu-img" src="" style="width:64px;height:64px;border-radius:20px;object-fit:cover;border:2px solid rgba(255,255,255,0.9);box-shadow:0 8px 18px rgba(0,122,255,0.10);">
+            <div style="font-weight:700;font-size:0.95rem;margin-top:8px" id="eu-name-display"></div>
+            <div style="font-size:0.75rem;color:var(--text-secondary)" id="eu-email-display"></div>
+        </div>
+        <input type="hidden" id="eu-uid">
+        <div class="input-group"><i class="fa-solid fa-user"></i><input type="text" id="eu-name" placeholder="Display Name"></div>
+        <div class="input-group"><i class="fa-solid fa-wallet"></i><input type="number" id="eu-balance" placeholder="Balance" step="0.01"></div>
+        <div class="input-group" style="padding:4px 12px">
+            <i class="fa-solid fa-shield-halved"></i>
+            <select id="eu-role" style="flex:1;background:none;border:none;outline:none;font-weight:600;font-size:0.92rem;color:var(--text-primary);padding:13px 6px;">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+        <div class="input-group" style="padding:4px 12px">
+            <i class="fa-solid fa-circle-check"></i>
+            <select id="eu-status" style="flex:1;background:none;border:none;outline:none;font-weight:600;font-size:0.92rem;color:var(--text-primary);padding:13px 6px;">
+                <option value="active">Active</option>
+                <option value="banned">Banned</option>
+            </select>
+        </div>
+        <button class="btn-p" onclick="saveUserEdits()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+        <button class="btn-p btn-danger" onclick="deleteUserConfirm()"><i class="fa-solid fa-trash"></i> Delete User</button>
+    </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div class="app-container" id="main-app">
+    <div class="header">
+        <div class="user-top">
+            <div class="u-info" id="u-info-btn" onclick="openProfileModal()">
+                <img id="u-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+                <div style="min-width:0">
+                    <h4 style="margin:0" id="u-name">Welcome!</h4>
+                    <p style="margin:0" id="u-email">Login to continue</p>
+                </div>
+            </div>
+            <div id="auth-action-btn" onclick="openAuthModal()">
+                <i class="fa-solid fa-right-to-bracket"></i>
+            </div>
+        </div>
+        <div class="balance-card">
+            <div><p style="margin:0">Current Balance</p><h2 style="margin:0" id="u-balance">৳ 0.00</h2></div>
+            <div style="text-align:right"><p style="margin:0">Total Messages</p><h2 style="margin:0" id="u-msg">0</h2></div>
+        </div>
+    </div>
+
+    <div class="menu-grid">
+        <div class="menu-card" onclick="checkAuth('sms-modal')"><div class="icon-area"><i class="fa-solid fa-comments"></i></div><div class="label-area">Message</div></div>
+        <div class="menu-card" onclick="checkAuth('profile-modal')"><div class="icon-area"><i class="fa-solid fa-user-shield" style="color:#34c759"></i></div><div class="label-area">Account</div></div>
+        <div class="menu-card" onclick="openModal('deposit-modal')"><div class="icon-area"><i class="fa-solid fa-wallet"></i></div><div class="label-area">Deposit</div></div>
+        <div class="menu-card" onclick="checkAuth('deposit-proof-modal')"><div class="icon-area"><i class="fa-solid fa-receipt"></i></div><div class="label-area">Deposit Proof</div></div>
+        <div class="menu-card" onclick="openPlusPackage()"><div class="icon-area"><i class="fa-solid fa-box-open"></i></div><div class="label-area">Plus Package</div></div>
+        <div class="menu-card" onclick="openModal('notif-modal')"><div class="icon-area"><i class="fa-solid fa-bell" style="color:#ff9800"></i></div><div class="label-area">Notification</div></div>
+        <div class="menu-card" onclick="openModal('trust-modal')"><div class="icon-area"><i class="fa-solid fa-list-check"></i></div><div class="label-area">Add List</div></div>
+        <div class="menu-card" id="watch-video-btn" style="opacity:0.5;cursor:not-allowed" onclick="openWatchLink()"><div class="icon-area"><i class="fa-solid fa-clapperboard"></i></div><div class="label-area">Watch Video</div></div>
+        <div class="menu-card" onclick="openSupportLink()"><div class="icon-area"><i class="fa-solid fa-headset" style="color:purple"></i></div><div class="label-area">Support Team</div></div>
+    </div>
+</div>
+
+<!-- ══ MODALS ══ -->
+
+<!-- SMS Modal -->
+<div id="sms-modal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('sms-modal')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-title">Message Center</div>
+        <div class="input-group"><i class="fa-solid fa-phone"></i><input type="tel" id="sms-number" placeholder="Receiver Number +880" maxlength="11" oninput="this.value=this.value.slice(0,11)"></div>
+        <div class="input-group"><i class="fa-solid fa-building"></i><input type="text" id="sms-sender" placeholder="Company Name"></div>
+        <div class="input-group"><i class="fa-solid fa-align-left"></i><textarea id="sms-body" rows="3" placeholder="Write your message..."></textarea></div>
+        <div style="display:flex;flex-direction:column;align-items:center;margin-top:14px">
+            <div class="modern-send-btn" onclick="processSmsSend()"><i class="fa-solid fa-paper-plane"></i></div>
+            <div class="send-hint" id="sms-percent">Send SMS</div>
+            <div id="sms-error-msg" class="sms-error">Not enough balance! At least ৳2 required</div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile / Account Modal -->
+<div id="profile-modal" class="modal">
+    <div class="modal-content" style="max-width:440px">
+        <button class="close-btn" onclick="closeModal('profile-modal')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-title">My Account</div>
+        <div class="profile-hero">
+            <img class="profile-avatar" id="pm-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+            <div style="text-align:center">
+                <div class="profile-name" id="pm-name">—</div>
+                <div class="profile-email" id="pm-email">—</div>
+                <div style="margin-top:8px"><span class="profile-badge" id="pm-role-badge"><i class="fa-solid fa-user"></i> User</span></div>
+            </div>
+        </div>
+        <div class="profile-stat-row">
+            <div class="profile-stat"><div class="stat-val" id="pm-balance">৳0</div><div class="stat-lbl">Balance</div></div>
+            <div class="profile-stat"><div class="stat-val" id="pm-msg">0</div><div class="stat-lbl">Messages</div></div>
+            <div class="profile-stat"><div class="stat-val" id="pm-joined">—</div><div class="stat-lbl">Joined</div></div>
+        </div>
+        <div class="modal-title" style="font-size:0.90rem;margin-bottom:10px">Update Profile</div>
+        <div class="input-group"><i class="fa-solid fa-user"></i><input type="text" id="new-name" placeholder="Update Display Name" maxlength="30"></div>
+        <div class="input-group"><i class="fa-solid fa-image"></i><input type="url" id="new-photo" placeholder="Profile Image URL (optional)"></div>
+        <button class="btn-p" onclick="updateProfile()"><i class="fa-solid fa-floppy-disk"></i> Update Profile</button>
+        <button class="btn-p btn-danger" onclick="openModal('logout-modal');closeModal('profile-modal')"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+        <div id="admin-panel-btn-wrap" style="display:none;margin-top:6px">
+            <button class="btn-p" style="background:linear-gradient(135deg,#5856d6,#3634a3)" onclick="openAdminPanel()"><i class="fa-solid fa-shield-halved"></i> Admin Panel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Deposit Modal -->
+<div id="deposit-modal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('deposit-modal')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-title">Deposit</div>
+        <div class="notice-box">
+            📢 ডিপোজিট নির্দেশনা<br>
+            যেকোনো একটি নাম্বারে আপনার প্যাকেজ অনুযায়ী টাকা Send Money করুন।
+            তারপর সাময়িকভাবে Deposit Proof এ TRX ID বা মোবাইল নম্বর সাবমিট করুন।<br>
+            ⏱️ সর্বোচ্চ ৩০ মিনিটের মধ্যে ব্যালেন্স অ্যাড হবে।<br>
+            ⚠️ সঠিক তথ্য দিন, ভুল তথ্যের জন্য আমরা দায়ী নই।<br><br>
+            আমাদের কাছ থেকে আপনি চাইলে অ্যাপ কিনে নিতে পারবেন।<br>
+            <b>অ্যাপ অর্ডার করার জন্য ইমু তে আসবেন।</b>
+        </div>
+        <div class="number-card">
+            <div class="num-item"><span><i class="fa-solid fa-money-bill-wave" style="color:#d81b60"></i> bKash:</span> <span id="bkash-num">Loading...</span></div>
+            <div class="num-item"><span><i class="fa-solid fa-money-bill-wave" style="color:#f7941d"></i> Nagad:</span> <span id="nagad-num">Loading...</span></div>
+            <div class="num-item"><span><i class="fa-solid fa-money-bill-wave" style="color:#8c3494"></i> Rocket:</span> <span id="rocket-num">Loading...</span></div>
+        </div>
+        <div class="rate-list">
+            <div class="rate-item"><span>৳ ২০০ টাকা</span><span>১১০ মেসেজ</span></div>
+            <div class="rate-item"><span>৳ ৪০০ টাকা</span><span>২২০ মেসেজ</span></div>
+            <div class="rate-item"><span>৳ ৫০০ টাকা</span><span>২৫০ মেসেজ</span></div>
+            <div class="rate-item"><span>৳ ৭০০ টাকা</span><span>৫০০ মেসেজ</span></div>
+            <div class="rate-item"><span>৳ ১০০০ টাকা</span><span>৮০০ মেসেজ</span></div>
+            <div class="rate-item"><span>৳ ১৫০০ টাকা</span><span>১০০০ মেসেজ</span></div>
+            <div class="rate-item"><span>৳ ২০০০ টাকা</span><span>১৫০০ মেসেজ</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- Deposit Proof Modal -->
+<div id="deposit-proof-modal" class="modal">
+    <div class="modal-content" style="max-width:440px">
+        <button class="close-btn" onclick="closeModal('deposit-proof-modal')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-title">Deposit Proof</div>
+        <div class="input-group"><i class="fa-solid fa-file-invoice"></i><input type="text" id="deposit-proof-text" placeholder="Enter Transaction ID / Proof"></div>
+        <button class="btn-p" onclick="submitDepositProof()"><i class="fa-solid fa-paper-plane"></i> Submit</button>
+    </div>
+</div>
+
+<!-- Plus Package -->
+<div id="plus-modal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('plus-modal')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-title">Plus Package</div>
+        <p style="font-size:12px;text-align:center;color:#555;margin-bottom:10px">ভিডিও দেখে Plus Package activate করুন</p>
+        <div id="video-list"></div>
+    </div>
+</div>
+
+<!-- Trust / Add List -->
+<div id="trust-modal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('trust-modal')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-title">Recent Deposits</div>
+        <p style="font-size:11px;text-align:center;color:#666;margin-bottom:14px">সফলভাবে যাদের ব্যালেন্স অ্যাড করা হয়েছে</p>
+        <div id="trust-list-container" style="max-height:380px;overflow-y:auto"><p style="text-align:center;font-size:12px;color:#999">Loading history...</p></div>
+    </div>
+</div>
+
+<!-- Notifications -->
+<div id="notif-modal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('notif-modal')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-title">Notifications</div>
+        <div id="notif-container" style="max-height:380px;overflow-y:auto;padding:4px"><p style="text-align:center;font-size:12px;color:#999">Loading notifications...</p></div>
+    </div>
+</div>
+
+<!-- Logout -->
+<div id="logout-modal" class="modal">
+    <div class="modal-content" style="text-align:center;max-width:360px">
+        <h3>Logout?</h3>
+        <p style="font-size:14px;color:#666">Are you sure you want to exit?</p>
+        <button class="btn-p btn-danger" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Yes, Logout</button>
+        <button class="btn-p btn-gray" onclick="closeModal('logout-modal')">No, Stay</button>
+    </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
+    onerror="document.getElementById('splash').innerHTML='<div style=\'padding:40px;text-align:center;font-family:sans-serif\'><h3 style=\'color:#ff3b30\'>⚠️ Firebase Load Failed</h3><p style=\'color:#555\'>Internet connection problem.<br>Please reload the page.</p><button onclick=\'location.reload()\' style=\'margin-top:14px;padding:12px 28px;background:#007aff;color:#fff;border:none;border-radius:14px;font-size:1rem;cursor:pointer\'>🔄 Reload</button></div>'"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+
+<script>
+// ════════════════════════════════
+// FIREBASE CONFIG — Real Credentials
+// ════════════════════════════════
+const firebaseConfig = {
+    apiKey:            "AIzaSyBzGXX7EyPtXoUgbUUXqxypNmKhb91XBts",
+    authDomain:        "elitesenderbd.firebaseapp.com",
+    databaseURL:       "https://elitesenderbd-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:         "elitesenderbd",
+    storageBucket:     "elitesenderbd.firebasestorage.app",
+    messagingSenderId: "220762569164",
+    appId:             "1:220762569164:web:a28e4d20034aa6d2374569",
+    measurementId:     "G-TPQKYF9C51"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+let currentUser    = null;
+let currentProfile = null;
+let currentBalance = 0;
+let totalMessages  = 0;
+let globalWatchLink= "";
+let supportLink    = "https://t.me/yourusername";
+let allUsersCache  = {};
+
+// ════════════════════════════════
+// BOOT
+// ════════════════════════════════
+window.onload = () => {
+    loadAdminNumbers();
+    loadTrustList();
+    loadNotifications();
+    loadWatchLink();
+
+    // Check localStorage for saved session
+    const savedPhone = localStorage.getItem('zp_phone');
+    const savedUid   = localStorage.getItem('zp_uid');
+
+    setTimeout(() => {
+        document.getElementById('splash').style.display = 'none';
+        if (savedPhone && savedUid) {
+            // Verify user still exists in DB
+            db.ref('users/' + savedUid).once('value', snap => {
+                if (snap.exists()) {
+                    currentUser = { uid: savedUid, phone: savedPhone };
+                    loadUserData(savedUid);
+                } else {
+                    localStorage.removeItem('zp_phone');
+                    localStorage.removeItem('zp_uid');
+                    showAuthPage();
+                }
+            });
+        } else {
+            showAuthPage();
+        }
+    }, 800);
+};
+
+// ════════════════════════════════
+// AUTH HELPERS
+// ════════════════════════════════
+function showAuthPage() {
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById('auth-page').classList.add('active');
+}
+
+function switchAuthTab(tab) {
+    const isLogin = (tab === 'login');
+    document.getElementById('tab-login').classList.toggle('active', isLogin);
+    document.getElementById('tab-register').classList.toggle('active', !isLogin);
+    document.getElementById('login-form').style.display    = isLogin ? 'block' : 'none';
+    document.getElementById('register-form').style.display = isLogin ? 'none'  : 'block';
+}
+
+function showAuthError(id, msg) {
+    const el = document.getElementById(id);
+    el.innerText = msg; el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 5000);
+}
+function showAuthSuccess(id, msg) {
+    const el = document.getElementById(id);
+    el.innerText = msg; el.style.display = 'block';
+}
+
+// Phone number normalize: ensure 11 digits starting with 01
+function normalizePhone(p) {
+    p = p.replace(/\D/g, '');
+    if (p.startsWith('880') && p.length === 13) p = '0' + p.slice(3);
+    return p;
+}
+
+// ════════════════════════════════
+// REGISTER
+// ════════════════════════════════
+async function handleRegister() {
+    const name  = document.getElementById('reg-name').value.trim();
+    const phone = normalizePhone(document.getElementById('reg-phone').value.trim());
+    const pass  = document.getElementById('reg-pass').value;
+    const pass2 = document.getElementById('reg-pass2').value;
+
+    if (!name)                        return showAuthError('register-error','Please enter your name');
+    if (phone.length !== 11)          return showAuthError('register-error','Please enter a valid 11-digit phone number');
+    if (!phone.startsWith('01'))      return showAuthError('register-error','Phone number must start with 01');
+    if (pass.length < 6)              return showAuthError('register-error','Password must be at least 6 characters');
+    if (pass !== pass2)               return showAuthError('register-error','Passwords do not match');
+
+    try {
+        // Check if phone already registered
+        const existing = await db.ref('users').orderByChild('phone').equalTo(phone).once('value');
+        if (existing.exists()) return showAuthError('register-error','This phone number is already registered');
+
+        const uid = 'u_' + phone + '_' + Date.now();
+        await db.ref('users/' + uid).set({
+            name:         name,
+            phone:        phone,
+            password:     btoa(pass),   // base64 encode (basic obfuscation)
+            balance:      0,
+            msg:          0,
+            role:         'user',
+            status:       'active',
+            profileImage: `https://i.pravatar.cc/150?u=${uid}`,
+            createdAt:    new Date().toISOString()
+        });
+
+        // Save session
+        localStorage.setItem('zp_phone', phone);
+        localStorage.setItem('zp_uid', uid);
+        currentUser = { uid, phone };
+
+        showAuthSuccess('register-success', '✅ Account created! Logging you in...');
+        setTimeout(() => loadUserData(uid), 800);
+    } catch(e) {
+        showAuthError('register-error', e.message);
+    }
+}
+
+// ════════════════════════════════
+// LOGIN
+// ════════════════════════════════
+async function handleLogin() {
+    const phone = normalizePhone(document.getElementById('login-phone').value.trim());
+    const pass  = document.getElementById('login-pass').value;
+    if (!phone || !pass) return showAuthError('login-error','Please fill all fields');
+    if (phone.length !== 11) return showAuthError('login-error','Enter a valid 11-digit phone number');
+
+    try {
+        const snap = await db.ref('users').orderByChild('phone').equalTo(phone).once('value');
+        if (!snap.exists()) return showAuthError('login-error','Phone number not registered');
+
+        let uid = null, userData = null;
+        snap.forEach(child => { uid = child.key; userData = child.val(); });
+
+        if (atob(userData.password) !== pass) return showAuthError('login-error','Wrong password');
+        if (userData.status === 'banned') return showAuthError('login-error','Your account has been banned. Contact support.');
+
+        // Save session
+        localStorage.setItem('zp_phone', phone);
+        localStorage.setItem('zp_uid', uid);
+        currentUser = { uid, phone };
+        loadUserData(uid);
+    } catch(e) {
+        showAuthError('login-error', e.message);
+    }
+}
+
+
+
+// ════════════════════════════════
+// LOAD USER DATA
+// ════════════════════════════════
+function loadUserData(uid) {
+    document.getElementById('auth-page').classList.remove('active');
+    document.getElementById('main-app').style.display = 'block';
+
+    // Auth action becomes logout icon
+    document.getElementById('auth-action-btn').innerHTML = `<i class="fa-solid fa-right-from-bracket" style="font-size:1.1rem;color:var(--danger)"></i>`;
+    document.getElementById('auth-action-btn').onclick   = () => openModal('logout-modal');
+
+    db.ref('users/' + uid).on('value', snap => {
+        const d = snap.val();
+        if (!d) return;
+        currentProfile = d;
+
+        // Check ban
+        if (d.status === 'banned') {
+            localStorage.removeItem('zp_phone');
+            localStorage.removeItem('zp_uid');
+            currentUser = null;
+            alert('Your account has been banned. Please contact support.');
+            showAuthPage();
+            return;
+        }
+
+        currentBalance = Number(d.balance) || 0;
+        totalMessages  = Number(d.msg)     || 0;
+
+        // Header
+        document.getElementById('u-name').innerText    = d.name || 'User';
+        document.getElementById('u-email').innerText   = d.phone || d.email || '';
+        document.getElementById('u-balance').innerText = '৳ ' + currentBalance.toFixed(2);
+        document.getElementById('u-msg').innerText     = totalMessages;
+        document.getElementById('u-img').src           = d.profileImage || `https://i.pravatar.cc/150?u=${uid}`;
+
+        // Show admin button if admin
+        document.getElementById('admin-panel-btn-wrap').style.display = d.role === 'admin' ? 'block' : 'none';
+    });
+}
+
+// ════════════════════════════════
+// LOGOUT
+// ════════════════════════════════
+async function logoutUser() {
+    closeModal('logout-modal');
+    localStorage.removeItem('zp_phone');
+    localStorage.removeItem('zp_uid');
+    currentUser = null; currentProfile = null;
+    currentBalance = 0; totalMessages = 0;
+
+    // Reset header UI
+    document.getElementById('u-name').innerText    = 'Welcome!';
+    document.getElementById('u-email').innerText   = 'Login to continue';
+    document.getElementById('u-balance').innerText = '৳ 0.00';
+    document.getElementById('u-msg').innerText     = '0';
+    document.getElementById('u-img').src = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+    document.getElementById('auth-action-btn').innerHTML = `<i class="fa-solid fa-right-to-bracket" style="font-size:1.1rem;color:var(--primary)"></i>`;
+    document.getElementById('auth-action-btn').onclick   = openAuthModal;
+
+    showAuthPage();
+}
+
+// ════════════════════════════════
+// PROFILE MODAL
+// ════════════════════════════════
+function openProfileModal() {
+    if (!currentUser) { showAuthPage(); return; }
+    const d = currentProfile;
+    if (!d) return;
+
+    document.getElementById('pm-img').src     = d.profileImage || `https://i.pravatar.cc/150?u=${currentUser.uid}`;
+    document.getElementById('pm-name').innerText  = d.name  || '—';
+    document.getElementById('pm-email').innerText = d.phone || d.email || '—';
+    document.getElementById('pm-balance').innerText = '৳ ' + (Number(d.balance)||0).toFixed(2);
+    document.getElementById('pm-msg').innerText     = d.msg || '0';
+    const joined = d.createdAt ? new Date(d.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    document.getElementById('pm-joined').innerText  = joined;
+
+    const isAdmin = d.role === 'admin';
+    document.getElementById('pm-role-badge').innerHTML = isAdmin
+        ? '<i class="fa-solid fa-shield-halved"></i> Admin'
+        : '<i class="fa-solid fa-user"></i> User';
+
+    document.getElementById('new-name').value  = '';
+    document.getElementById('new-photo').value = '';
+    openModal('profile-modal');
+}
+
+async function updateProfile() {
+    if (!currentUser) return;
+    const name  = document.getElementById('new-name').value.trim();
+    const photo = document.getElementById('new-photo').value.trim();
+    const updates = {};
+    if (name)  updates.name         = name;
+    if (photo) updates.profileImage = photo;
+    if (!Object.keys(updates).length) return alert('Nothing to update!');
+    try {
+        await db.ref('users/' + currentUser.uid).update(updates);
+        alert('Profile updated!');
+        closeModal('profile-modal');
+    } catch(e) { alert(e.message); }
+}
+
+// ════════════════════════════════
+// MODAL HELPERS
+// ════════════════════════════════
+function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+    if (id === 'sms-modal') document.getElementById('sms-error-msg').style.display = 'none';
+}
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function openAuthModal() { showAuthPage(); }
+function checkAuth(id)   { if (currentUser) openModal(id); else showAuthPage(); }
+
+// ════════════════════════════════
+// ADMIN NUMBERS
+// ════════════════════════════════
+function loadAdminNumbers() {
+    db.ref('admin/numbers').on('value', snap => {
+        const n = snap.val();
+        if (n) {
+            document.getElementById('bkash-num').innerText  = n.bkash  || 'Not set';
+            document.getElementById('nagad-num').innerText  = n.nagad  || 'Not set';
+            document.getElementById('rocket-num').innerText = n.rocket || 'Not set';
+        }
+    });
+}
+
+// ════════════════════════════════
+// SMS SEND
+// ════════════════════════════════
+async function processSmsSend() {
+    const numInput    = document.getElementById('sms-number');
+    const senderInput = document.getElementById('sms-sender');
+    const bodyInput   = document.getElementById('sms-body');
+    const errorDiv    = document.getElementById('sms-error-msg');
+    const pText       = document.getElementById('sms-percent');
+
+    if (!numInput.value || !bodyInput.value) return alert('Please enter number and type message!');
+    if (currentBalance < 2) { errorDiv.style.display = 'block'; return; }
+
+    let p = 0;
+    const interval = setInterval(async () => {
+        p += 25; pText.innerText = 'Sending... ' + p + '%';
+        if (p >= 100) {
+            clearInterval(interval);
+            try {
+                const newBal = currentBalance - 2;
+                const newMsg = totalMessages + 1;
+                await db.ref('users/' + currentUser.uid).update({ balance: newBal, msg: newMsg });
+
+                // Log SMS activity
+                await db.ref('smsLogs').push({
+                    uid:    currentUser.uid,
+                    email:  currentProfile?.email || '',
+                    name:   currentProfile?.name  || '',
+                    to:     numInput.value,
+                    sender: senderInput.value,
+                    time:   new Date().toISOString()
+                });
+
+                numInput.value = ''; senderInput.value = ''; bodyInput.value = '';
+                alert('SMS sent successfully!');
+                closeModal('sms-modal');
+                pText.innerText = 'Send SMS';
+            } catch(err) { alert(err.message); }
+        }
+    }, 100);
+}
+
+// ════════════════════════════════
+// DEPOSIT PROOF
+// ════════════════════════════════
+function submitDepositProof() {
+    const text = document.getElementById('deposit-proof-text').value.trim();
+    if (!text) return alert('Please enter deposit proof!');
+
+    const proofData = {
+        text:  text,
+        uid:   currentUser ? currentUser.uid : 'guest',
+        email: currentProfile?.email || currentUser?.email || 'not-logged-in',
+        name:  currentProfile?.name  || 'Guest',
+        time:  new Date().toISOString()
+    };
+
+    db.ref('depositProofs').push(proofData)
+        .then(() => {
+            alert('Deposit proof submitted successfully!');
+            document.getElementById('deposit-proof-text').value = '';
+            closeModal('deposit-proof-modal');
+        })
+        .catch(err => alert(err.message));
+}
+
+// ════════════════════════════════
+// PLUS PACKAGE
+// ════════════════════════════════
+function openPlusPackage() {
+    if (currentUser) { openModal('plus-modal'); loadPlusVideos(); }
+    else showAuthPage();
+}
+function loadPlusVideos() {
+    db.ref('admin/plusVideos').on('value', snap => {
+        const data = snap.val();
+        const container = document.getElementById('video-list');
+        container.innerHTML = '';
+        if (data) {
+            Object.values(data).forEach(v => {
+                container.innerHTML += `<div><a href="${v.link}" target="_blank">▶ ${v.title}</a><p style="font-size:11px">${v.desc}</p></div>`;
+            });
+        } else container.innerHTML = 'No videos found';
+    });
+}
+
+// ════════════════════════════════
+// TRUST LIST
+// ════════════════════════════════
+function loadTrustList() {
+    db.ref('admin/trustList').on('value', snap => {
+        const data = snap.val();
+        const container = document.getElementById('trust-list-container');
+        container.innerHTML = '';
+        if (data) {
+            Object.values(data).reverse().forEach(item => {
+                container.innerHTML += `
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div><b style="font-size:13px;color:#333">${item.phone}</b><br><small style="color:#888;font-size:10px">${item.time}</small></div>
+                    <div style="text-align:right"><b style="color:#22c55e;font-size:14px">+ ৳${item.amount}</b><br><small style="color:#4f46e5;font-size:9px;font-weight:bold">SUCCESS</small></div>
+                </div>`;
+            });
+        } else container.innerHTML = '<p style="text-align:center;font-size:12px;color:#999">No history available.</p>';
+    });
+}
+
+// ════════════════════════════════
+// NOTIFICATIONS
+// ════════════════════════════════
+function loadNotifications() {
+    db.ref('admin/notifications').on('value', snap => {
+        const data = snap.val();
+        const container = document.getElementById('notif-container');
+        let html = `<div style="border-left:4px solid var(--primary)"><b style="font-size:14px;color:var(--primary)">Zen Pro SMS</b><p style="font-size:12px;margin:5px 0;color:#555">আমাদের অ্যাপে আপনাকে স্বাগতম!</p><small style="font-size:9px;color:#999">System Default</small></div>`;
+        if (data) {
+            Object.values(data).reverse().forEach(n => {
+                html += `<div><b style="font-size:14px;color:#333">${n.title}</b><p style="font-size:12px;margin:5px 0;color:#666">${n.msg}</p><small style="font-size:9px;color:#bbb">${n.time}</small></div>`;
+            });
+        }
+        container.innerHTML = html;
+    });
+}
+
+// ════════════════════════════════
+// WATCH LINK
+// ════════════════════════════════
+function loadWatchLink() {
+    db.ref('admin/watchVideoLink').on('value', snap => {
+        const link = snap.val();
+        const btn  = document.getElementById('watch-video-btn');
+        if (link && link.trim()) {
+            globalWatchLink = link;
+            btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+        } else {
+            globalWatchLink = '';
+            btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed';
+        }
+    });
+}
+function openWatchLink() {
+    if (globalWatchLink) window.open(globalWatchLink,'_blank');
+    else alert('There are currently no videos!');
+}
+function openSupportLink() { window.open(supportLink,'_blank'); }
+
+// ════════════════════════════════════════════
+// ════════  ADMIN PANEL  ═════════════════════
+// ════════════════════════════════════════════
+function openAdminPanel() {
+    if (!currentProfile || currentProfile.role !== 'admin') return alert('Access denied!');
+    closeModal('profile-modal');
+    document.getElementById('admin-page').classList.add('active');
+    loadAdminOverview();
+    loadAdminUsers();
+    loadAdminDeposits();
+    loadAdminSmsLogs();
+    loadAdminNotifs();
+    loadAdminSettings();
+}
+function closeAdminPanel() { document.getElementById('admin-page').classList.remove('active'); }
+
+function switchAdminTab(tab) {
+    document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('admin-' + tab).classList.add('active');
+}
+
+// ── Overview ──
+function loadAdminOverview() {
+    db.ref('users').once('value', snap => {
+        const users = snap.val() || {};
+        const total = Object.keys(users).length;
+        document.getElementById('stat-users').innerText = total;
+
+        // Recent users
+        const el = document.getElementById('recent-users-list');
+        const list = Object.entries(users).sort((a,b)=> new Date(b[1].createdAt||0) - new Date(a[1].createdAt||0)).slice(0,5);
+        if (!list.length) { el.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users"></i>No users</div>'; return; }
+        el.innerHTML = list.map(([uid, u]) => buildUserRow(uid, u)).join('');
+    });
+
+    db.ref('smsLogs').once('value', snap => {
+        document.getElementById('stat-sms').innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
+    });
+    db.ref('depositProofs').once('value', snap => {
+        document.getElementById('stat-deposits').innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
+    });
+    db.ref('admin/notifications').once('value', snap => {
+        document.getElementById('stat-revenue').innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
+    });
+}
+
+// ── Users ──
+function loadAdminUsers() {
+    db.ref('users').on('value', snap => {
+        allUsersCache = snap.val() || {};
+        renderUserList(allUsersCache);
+    });
+}
+
+function renderUserList(users) {
+    const el = document.getElementById('all-users-list');
+    const entries = Object.entries(users);
+    if (!entries.length) { el.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users"></i>No users found</div>'; return; }
+    el.innerHTML = entries.map(([uid, u]) => buildUserRow(uid, u)).join('');
+}
+
+function buildUserRow(uid, u) {
+    const banBadge = u.status === 'banned' ? '<span class="badge badge-banned">Banned</span>' : '<span class="badge badge-active">Active</span>';
+    const roleBadge = u.role === 'admin' ? '<span class="badge badge-admin">Admin</span>' : '';
+    const bal = '<span class="badge badge-bal">৳'+( Number(u.balance)||0).toFixed(0)+'</span>';
+    return `
+    <div class="user-list-item">
+        <img class="user-list-avatar" src="${u.profileImage||'https://i.pravatar.cc/150?u='+uid}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+        <div class="user-list-info">
+            <div class="user-list-name">${u.name||'No Name'}</div>
+            <div class="user-list-email">${u.email||'—'}</div>
+            <div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap">${banBadge}${roleBadge}${bal}</div>
+        </div>
+        <div class="admin-action-btns">
+            <button class="icon-btn icon-btn-primary" onclick="openEditUser('${uid}')" title="Edit"><i class="fa-solid fa-pen"></i></button>
+            <button class="icon-btn icon-btn-warn" onclick="toggleBan('${uid}','${u.status}')" title="Ban/Unban"><i class="fa-solid fa-ban"></i></button>
+        </div>
+    </div>`;
+}
+
+function filterUsers() {
+    const q = document.getElementById('user-search').value.toLowerCase();
+    if (!q) { renderUserList(allUsersCache); return; }
+    const filtered = {};
+    Object.entries(allUsersCache).forEach(([uid, u]) => {
+        if ((u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)) filtered[uid] = u;
+    });
+    renderUserList(filtered);
+}
+
+function openEditUser(uid) {
+    const u = allUsersCache[uid];
+    if (!u) return;
+    document.getElementById('eu-uid').value          = uid;
+    document.getElementById('eu-img').src            = u.profileImage || `https://i.pravatar.cc/150?u=${uid}`;
+    document.getElementById('eu-name-display').innerText  = u.name  || '—';
+    document.getElementById('eu-email-display').innerText = u.email || '—';
+    document.getElementById('eu-name').value    = u.name    || '';
+    document.getElementById('eu-balance').value = u.balance || 0;
+    document.getElementById('eu-role').value    = u.role    || 'user';
+    document.getElementById('eu-status').value  = u.status  || 'active';
+    openModal('edit-user-modal');
+}
+
+async function saveUserEdits() {
+    const uid  = document.getElementById('eu-uid').value;
+    const name    = document.getElementById('eu-name').value.trim();
+    const balance = parseFloat(document.getElementById('eu-balance').value);
+    const role    = document.getElementById('eu-role').value;
+    const status  = document.getElementById('eu-status').value;
+    if (!uid) return;
+    try {
+        const updates = {};
+        if (name) updates.name = name;
+        if (!isNaN(balance)) updates.balance = balance;
+        updates.role   = role;
+        updates.status = status;
+        await db.ref('users/' + uid).update(updates);
+        closeModal('edit-user-modal');
+        alert('User updated!');
+    } catch(e) { alert(e.message); }
+}
+
+async function deleteUserConfirm() {
+    const uid = document.getElementById('eu-uid').value;
+    if (!uid) return;
+    if (!confirm('Delete this user permanently from database?')) return;
+    try {
+        await db.ref('users/' + uid).remove();
+        closeModal('edit-user-modal');
+        alert('User deleted from database. Note: Firebase Auth account requires Admin SDK to fully remove.');
+    } catch(e) { alert(e.message); }
+}
+
+async function toggleBan(uid, currentStatus) {
+    const newStatus = currentStatus === 'banned' ? 'active' : 'banned';
+    try {
+        await db.ref('users/' + uid).update({ status: newStatus });
+        alert('User ' + (newStatus === 'banned' ? 'banned' : 'unbanned') + ' successfully!');
+    } catch(e) { alert(e.message); }
+}
+
+// ── Deposits ──
+function loadAdminDeposits() {
+    db.ref('depositProofs').on('value', snap => {
+        const data = snap.val();
+        const el   = document.getElementById('admin-deposit-list');
+        if (!data) { el.innerHTML = '<div class="empty-state"><i class="fa-solid fa-receipt"></i>No deposits</div>'; return; }
+        const entries = Object.entries(data).reverse();
+        el.innerHTML = entries.map(([key, d]) => `
+        <div class="dep-item">
+            <div>
+                <div class="dep-user">${d.name||'—'} <span style="font-weight:400;color:var(--text-secondary)">${d.email||''}</span></div>
+                <div class="dep-proof">${d.text}</div>
+                <div class="dep-time">${new Date(d.time).toLocaleString()}</div>
+            </div>
+            <button class="icon-btn icon-btn-danger" onclick="deleteDeposit('${key}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
+        </div>`).join('');
+    });
+}
+
+async function deleteDeposit(key) {
+    if (!confirm('Delete this deposit proof?')) return;
+    await db.ref('depositProofs/' + key).remove();
+}
+
+// ── SMS Logs ──
+function loadAdminSmsLogs() {
+    db.ref('smsLogs').on('value', snap => {
+        const data = snap.val();
+        const el   = document.getElementById('admin-sms-list');
+        if (!data) { el.innerHTML = '<div class="empty-state"><i class="fa-solid fa-comments"></i>No SMS logs</div>'; return; }
+        const entries = Object.entries(data).reverse().slice(0,50);
+        el.innerHTML = entries.map(([,s]) => `
+        <div class="sms-log-item">
+            <div>
+                <div style="font-size:0.84rem;font-weight:700;color:var(--text-primary)">${s.name||'—'} → ${s.to}</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:2px">${s.email||''} · ${s.sender||''}</div>
+                <div style="font-size:0.68rem;color:var(--text-tertiary);margin-top:2px">${new Date(s.time).toLocaleString()}</div>
+            </div>
+        </div>`).join('');
+    });
+}
+
+// ── Notifications ──
+function loadAdminNotifs() {
+    db.ref('admin/notifications').on('value', snap => {
+        const data = snap.val();
+        const el   = document.getElementById('admin-notif-list');
+        if (!data) { el.innerHTML = '<div class="empty-state"><i class="fa-solid fa-bell"></i>No notifications</div>'; return; }
+        el.innerHTML = Object.entries(data).reverse().map(([key,n]) => `
+        <div class="dep-item">
+            <div>
+                <div class="dep-user">${n.title}</div>
+                <div class="dep-proof">${n.msg}</div>
+                <div class="dep-time">${n.time}</div>
+            </div>
+            <button class="icon-btn icon-btn-danger" onclick="deleteNotif('${key}')"><i class="fa-solid fa-trash"></i></button>
+        </div>`).join('');
+    });
+}
+
+async function sendAdminNotif() {
+    const title = document.getElementById('notif-title-input').value.trim();
+    const msg   = document.getElementById('notif-msg-input').value.trim();
+    if (!title || !msg) return alert('Please fill in title and message');
+    try {
+        await db.ref('admin/notifications').push({ title, msg, time: new Date().toLocaleString() });
+        document.getElementById('notif-title-input').value = '';
+        document.getElementById('notif-msg-input').value   = '';
+        alert('Notification sent!');
+    } catch(e) { alert(e.message); }
+}
+
+async function deleteNotif(key) {
+    if (!confirm('Delete this notification?')) return;
+    await db.ref('admin/notifications/' + key).remove();
+}
+
+// ── Settings ──
+function loadAdminSettings() {
+    db.ref('admin/numbers').once('value', snap => {
+        const n = snap.val() || {};
+        document.getElementById('set-bkash').value  = n.bkash  || '';
+        document.getElementById('set-nagad').value  = n.nagad  || '';
+        document.getElementById('set-rocket').value = n.rocket || '';
+    });
+    db.ref('admin/watchVideoLink').once('value', snap => {
+        document.getElementById('set-watchlink').value = snap.val() || '';
+    });
+    db.ref('admin/supportLink').once('value', snap => {
+        if (snap.val()) {
+            document.getElementById('set-supportlink').value = snap.val();
+            supportLink = snap.val();
+        }
+    });
+}
+
+let settingsTimer = null;
+function updateAdminSetting(field, value) {
+    clearTimeout(settingsTimer);
+    settingsTimer = setTimeout(() => {
+        db.ref('admin/numbers').update({ [field]: value });
+    }, 800);
+}
+function updateAdminSetting2(key, value) {
+    clearTimeout(settingsTimer);
+    settingsTimer = setTimeout(() => {
+        db.ref('admin/' + key).set(value);
+        if (key === 'supportLink') supportLink = value;
+    }, 800);
+}
+
+async function addTrustEntry() {
+    const phone  = document.getElementById('tl-phone').value.trim();
+    const amount = document.getElementById('tl-amount').value.trim();
+    if (!phone || !amount) return alert('Please fill in all fields');
+    await db.ref('admin/trustList').push({ phone, amount, time: new Date().toLocaleString() });
+    document.getElementById('tl-phone').value  = '';
+    document.getElementById('tl-amount').value = '';
+    alert('Entry added!');
+}
+
+async function addPlusVideo() {
+    const title = document.getElementById('pv-title').value.trim();
+    const link  = document.getElementById('pv-link').value.trim();
+    const desc  = document.getElementById('pv-desc').value.trim();
+    if (!title || !link) return alert('Please fill title and link');
+    await db.ref('admin/plusVideos').push({ title, link, desc });
+    document.getElementById('pv-title').value = '';
+    document.getElementById('pv-link').value  = '';
+    document.getElementById('pv-desc').value  = '';
+    alert('Video added!');
+}
+</script>
+</body>
+</html>
